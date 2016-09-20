@@ -1,0 +1,170 @@
+
+<style>
+	.title1 {
+		color: black;
+		font-size: 45px;
+		margin-top: 30;
+	}
+	.div0 {
+		margin-right: 30px;
+		margin-left: 30px;
+	}
+	
+	.div1 {
+
+		align-items: center; 
+		margin-top: 60px;
+	
+	}
+	.div2 {
+		margin-top:  90px;
+		/*margin-left: 0;
+		margin-right: 0;*/
+	}
+
+	
+
+	.title2 {
+		
+		font-size:45px;
+		
+		border-color: orange;
+		border-width: 1px;
+		border-radius: 7px;
+		text-align: center;
+		
+		
+		background-color: #F2F2F2;
+		
+		
+		
+	}
+
+</style>
+
+<template>
+    <div class="div0">
+     
+         <div class="div1">
+
+		     <image class="logoImage" src="{{image_url}}" style = "width: {{width_screen}}; height: {{width_screen}};"></image>
+
+		     <text  class="title1">{{version}}</text> 
+         </div>
+
+         <div class="div2">
+
+         	  <text  class="title2" onclick="updateHandler">{{update_str}}</text> 
+
+         	 <!--  <wxc-button class="title2" style="color: red" type="default" size="middle" value="翻 译" onclick="updateHandler">asdasdas</wxc-button> -->
+
+         </div>
+    </div>
+
+</template>
+
+
+<script>
+	//var width_screen = screen.width * 0.6;
+	//.logoImage {width: {{width_screen}}; height: {{width_screen}};}
+	// 
+	var stream = require('@weex-module/stream')
+    var modal = require('@weex-module/modal')
+	module.exports = {
+		data: {
+			width_screen :  450 ,
+			width_height :  450 ,
+			image_url : 'https://oan5zurgx.qnssl.com/%E8%90%A5%E9%94%80%E7%AE%A1%E5%AE%B6.png',
+			version: '营销管家V1.3.0',
+			update_str: '更新版本'
+
+		},
+
+		methods: {
+			
+			updateHandler : function(e){
+				
+				 this.width_screen +=10;
+				  this.loadVersionData();
+				 //this.alert('hehe');
+			},
+
+
+			/* 
+			   弹出框
+			*/
+
+			 alert: function(msg, okTitle, cancelTitle) {
+			        var self = this;
+			        if (!msg || typeof msg !== 'string') {
+			          msg = "I am Alert!";
+			        }
+			         var modal = require('@weex-module/modal');
+			         modal.alert({
+			          'message': msg,
+			          'okTitle': '确定',
+			          'cancelTitle': cancelTitle
+			        }, function() {
+			          self.toast("Click Alert OK Bnt!!");
+			        });
+
+           },
+
+	       /* 
+			   提示宽
+			*/
+
+	       toast: function(msg, duration) {
+		        duration = duration || 2;
+		        var modal = require('@weex-module/modal');
+		        modal.toast({
+		          'message': msg,
+		          'duration': duration
+		        });
+
+            },
+
+
+	       /* 
+			   获取网络数据
+			*/
+
+		   loadVersionData: function() {
+		   	  self.toast('正在获取数据中...');
+	          var self = this;
+	          var GET_URL = 'http://192.168.5.54:8383/base-data-service/information/getAppVersionInfo?versionNo=1.3.0&type=iOS';
+	          stream.fetch({
+	            method: 'GET',
+	            url: GET_URL,
+	            type:'json'
+	          }, function(ret) {
+	          	  if (!ret.ok) {
+	          	  	self.alert('服务器错误');
+	          	  }else{
+	          	  	var dataArr = ret.data;
+	          	  	if (dataArr.length>0) {
+	          	  		var firstObj = dataArr[0];
+	          	  		if (firstObj.isUpgrade == 1) {
+	          	  			// 
+	          	  			self.alert(firstObj.information);
+	          	  		}else{
+	          	  			self.update_str = '已是最新版本'
+	          	  		}
+	                    
+	          	  	}else{
+	          	  		self.toast('没有数据');
+	          	  	}
+	                
+
+	          	  }
+	          },function(response){
+	            // self.toastTips('get:' + GET_URL);
+	          });
+	      }
+
+		}
+}
+	
+
+</script>
+
