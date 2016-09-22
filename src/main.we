@@ -5,46 +5,43 @@
 		font-size: 45px;
 		margin-top: 30;
 	}
-	.div0 {
-		margin-right: 30px;
-		margin-left: 30px;
-	}
-	
+
 	.div1 {
 
 		align-items: center; 
 		margin-top: 60px;
 	
 	}
-	.div2 {
-		margin-top:  90px;
-		/*margin-left: 0;
-		margin-right: 0;*/
-	}
-
-	
 
 	.title2 {
 		
-		font-size:45px;
+		align-items: center;
 		
+
+		height: 88px;
+		
+	}
+
+	.div2 {
+		
+		font-size:30px;
 		border-color: orange;
 		border-width: 1px;
 		border-radius: 7px;
-		text-align: center;
-		
-		
 		background-color: #F2F2F2;
-		
-		
+		height: 88px;
+		line-height: 88px;
+		margin-top:  90px;
+		margin-left: 30px;
+		margin-right: 30px;
 		
 	}
+
 
 </style>
 
 <template>
-    <div class="div0">
-     
+    <div>
          <div class="div1">
 
 		     <image class="logoImage" src="{{image_url}}" style = "width: {{width_screen}}; height: {{width_screen}};"></image>
@@ -52,43 +49,67 @@
 		     <text  class="title1">{{version}}</text> 
          </div>
 
-         <div class="div2">
+         <div  class="div2" onclick="updateHandler" id="btn">
 
-         	  <text  class="title2" onclick="updateHandler">{{update_str}}</text> 
+         	   	<text  class="title2">{{update_str}}</text>
 
-         	 <!--  <wxc-button class="title2" style="color: red" type="default" size="middle" value="翻 译" onclick="updateHandler">asdasdas</wxc-button> -->
-
-         </div>
+         </div>   	 
     </div>
-
 </template>
 
 
 <script>
-	//var width_screen = screen.width * 0.6;
-	//.logoImage {width: {{width_screen}}; height: {{width_screen}};}
-	// 
-	var stream = require('@weex-module/stream')
-    var modal = require('@weex-module/modal')
+    //更新地址
+    var stream = require('@weex-module/stream');
+    var update_URL
 	module.exports = {
 		data: {
 			width_screen :  450 ,
 			width_height :  450 ,
 			image_url : 'https://oan5zurgx.qnssl.com/%E8%90%A5%E9%94%80%E7%AE%A1%E5%AE%B6.png',
-			version: '营销管家V1.3.0',
-			update_str: '更新版本'
-
+			version: '营销管家',
+			update_str: '更新'
+		},
+		ready : function() {
+			var self = this;
+			//self.checkUpdate();
 		},
 
 		methods: {
-			
-			updateHandler : function(e){
+			/* 
+			    更新检查
+			 */
+			checkUpdate : function(){
 				
-				 this.width_screen +=10;
-				  this.loadVersionData();
-				 //this.alert('hehe');
+				 var self = this;
+                 var eventModule = require('@weex-module/event'); 
+				 eventModule.checkVerionWithLocalVersion(function(ret) { 
+				   	//回调获取本地的版本号
+				     self.loadVersionData(ret);
+				     
+				   });
 			},
+			/*   
+			    点击之后执行更新方法
+			 */
+			updateHandler : function(){
 
+				//调用原生的方法更新版本
+				 var self = this;
+				// var eventModule = require('@weex-module/event');
+				// eventModule.updateVersion(self.update_URL);
+
+
+				var btn = self.$vm("btn");
+				console.log('btn的属性'+btn._css.div2.height);
+
+				
+
+
+				
+				 
+
+			},
 
 			/* 
 			   弹出框
@@ -103,9 +124,9 @@
 			         modal.alert({
 			          'message': msg,
 			          'okTitle': '确定',
-			          'cancelTitle': cancelTitle
-			        }, function() {
-			          self.toast("Click Alert OK Bnt!!");
+			          'cancelTitle': '取消'
+			        }, function(ret) {
+			          self.toast(ret);
 			        });
 
            },
@@ -129,15 +150,17 @@
 			   获取网络数据
 			*/
 
-		   loadVersionData: function() {
-		   	  self.toast('正在获取数据中...');
+		   loadVersionData: function(version) {
+		   	 
 	          var self = this;
-	          var GET_URL = 'http://192.168.5.54:8383/base-data-service/information/getAppVersionInfo?versionNo=1.3.0&type=iOS';
+	          self.toast('正在获取数据中...');
+	          var GET_URL = 'http://192.168.5.54:8383/base-data-service/information/getAppVersionInfo?versionNo='+ version +'&type=iOS';
 	          stream.fetch({
 	            method: 'GET',
 	            url: GET_URL,
 	            type:'json'
 	          }, function(ret) {
+	          	  
 	          	  if (!ret.ok) {
 	          	  	self.alert('服务器错误');
 	          	  }else{
@@ -147,6 +170,8 @@
 	          	  		if (firstObj.isUpgrade == 1) {
 	          	  			// 
 	          	  			self.alert(firstObj.information);
+	          	  			self.update_URL = firstObj.upgradeUrl;
+	          	  			self.update_str = '点击更新'
 	          	  		}else{
 	          	  			self.update_str = '已是最新版本'
 	          	  		}
