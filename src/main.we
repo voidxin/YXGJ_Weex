@@ -5,7 +5,10 @@
 		font-size: 45px;
 		margin-top: 30;
 	}
-
+	/*.div0 {
+		flex-flow: flex-direction ;
+	}
+*/
 	.div1 {
 
 		align-items: center; 
@@ -13,35 +16,30 @@
 	
 	}
 
-	.title2 {
-		
-		align-items: center;
-		
+	 .btn {
 
-		height: 88px;
-		
-	}
+	 	margin-top: 90px;
+	 	margin-left: 30px;
+	 	margin-right: 30px;
+	 	font-size: 36px; 
+	 	text-align: center; 
+	 	border-color: orange;
+	 	border-width: 1px;
+	 	padding: 20px; 
+	 	border-radius: 10px;
+	 	height:88px;
+	 }
+	 .title2 {
+	 	text-align: center;
+	 }
 
-	.div2 {
-		
-		font-size:30px;
-		border-color: orange;
-		border-width: 1px;
-		border-radius: 7px;
-		background-color: #F2F2F2;
-		height: 88px;
-		line-height: 88px;
-		margin-top:  90px;
-		margin-left: 30px;
-		margin-right: 30px;
-		
-	}
-
+	
+	 	
 
 </style>
 
 <template>
-    <div>
+    <div class="div0">
          <div class="div1">
 
 		     <image class="logoImage" src="{{image_url}}" style = "width: {{width_screen}}; height: {{width_screen}};"></image>
@@ -49,30 +47,38 @@
 		     <text  class="title1">{{version}}</text> 
          </div>
 
-         <div  class="div2" onclick="updateHandler" id="btn">
+          <div class="btn" onclick="updateHandler" > 
 
-         	   	<text  class="title2">{{update_str}}</text>
+                    <text class="title2" style="color:{{textcolor}};  ">{{update_str}}</text>
 
-         </div>   	 
+          </div>
+          	
     </div>
+
+   
 </template>
 
 
 <script>
     //更新地址
     var stream = require('@weex-module/stream');
-    var update_URL
+    //获取到的更新地址
+    var update_URL;
+    //更新的状态（1是更新，其他不更新)
+    var update_state ;
 	module.exports = {
 		data: {
 			width_screen :  450 ,
 			width_height :  450 ,
 			image_url : 'https://oan5zurgx.qnssl.com/%E8%90%A5%E9%94%80%E7%AE%A1%E5%AE%B6.png',
 			version: '营销管家',
-			update_str: '更新'
+			update_str: '更新',
+			textcolor:'orange',
+			 
 		},
 		ready : function() {
 			var self = this;
-			//self.checkUpdate();
+			self.checkUpdate();
 		},
 
 		methods: {
@@ -85,6 +91,7 @@
                  var eventModule = require('@weex-module/event'); 
 				 eventModule.checkVerionWithLocalVersion(function(ret) { 
 				   	//回调获取本地的版本号
+				   	 self.version = '营销管家V'+ret;
 				     self.loadVersionData(ret);
 				     
 				   });
@@ -96,18 +103,9 @@
 
 				//调用原生的方法更新版本
 				 var self = this;
-				// var eventModule = require('@weex-module/event');
-				// eventModule.updateVersion(self.update_URL);
+				 var eventModule = require('@weex-module/event');
+				 eventModule.updateVersion(self.update_URL,self.update_state);
 
-
-				var btn = self.$vm("btn");
-				console.log('btn的属性'+btn._css.div2.height);
-
-				
-
-
-				
-				 
 
 			},
 
@@ -126,7 +124,7 @@
 			          'okTitle': '确定',
 			          'cancelTitle': '取消'
 			        }, function(ret) {
-			          self.toast(ret);
+			          
 			        });
 
            },
@@ -154,7 +152,7 @@
 		   	 
 	          var self = this;
 	          self.toast('正在获取数据中...');
-	          var GET_URL = 'http://192.168.5.54:8383/base-data-service/information/getAppVersionInfo?versionNo='+ version +'&type=iOS';
+	          var GET_URL = 'http://testXX/base-data-service/information/getAppVersionInfo?versionNo='+ version +'&type=yxgj_iOS';
 	          stream.fetch({
 	            method: 'GET',
 	            url: GET_URL,
@@ -167,8 +165,10 @@
 	          	  	var dataArr = ret.data;
 	          	  	if (dataArr.length>0) {
 	          	  		var firstObj = dataArr[0];
+	          	  		//更新状态
+	          	  		self.update_state = firstObj.isUpgrade;
 	          	  		if (firstObj.isUpgrade == 1) {
-	          	  			// 
+	          	  			// 更新状态为1时更新
 	          	  			self.alert(firstObj.information);
 	          	  			self.update_URL = firstObj.upgradeUrl;
 	          	  			self.update_str = '点击更新'
@@ -177,7 +177,9 @@
 	          	  		}
 	                    
 	          	  	}else{
-	          	  		self.toast('没有数据');
+	          	  		//没有数据
+	          	  		self.textcolor = 'gray'
+	          	  		self.update_str = '已是最新版本'
 	          	  	}
 	                
 
